@@ -17,6 +17,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
   if (!title || !description) {
     throw new ApiError(400, "title or description are required");
   }
+  const owner = req.user._id;
+  console.log(req.user._id);
   const videolocalpath = await req.files?.videoFile[0]?.path;
   if (!videolocalpath) {
     throw new ApiError(400, "video is missing");
@@ -35,7 +37,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     videoFile: video.url,
     description,
     title,
-    owner: req.user_id,
+    owner,
     thumbnail: thumbnail?.url || "",
     isPublished: isPublished || true,
   });
