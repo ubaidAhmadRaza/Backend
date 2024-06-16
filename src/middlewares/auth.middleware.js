@@ -7,7 +7,7 @@ export const isUserAuthenticated = asyncHandler(async (req,res,next) =>{
     if(!accessToken){
         throw new ApiError(404,"no access token")
     }
-    const decodedToken=await jwt.verify(accessToken,process.env.ACCESS_TOKEN_SECRET);
+    const decodedToken= await jwt.verify(accessToken,process.env.ACCESS_TOKEN_SECRET);
     if (!decodedToken){
         throw new ApiError(404,"not verify  access token")
     }
