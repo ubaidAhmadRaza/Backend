@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 export const isUserAuthenticated = asyncHandler(async (req,res,next) =>{
     const accessToken =req.cookies?.accessToken;
     if(!accessToken){
-        throw new ApiError(404,"no access token")
+        throw new ApiError(404,"please login ")
     }
     const decodedToken= await jwt.verify(accessToken,process.env.ACCESS_TOKEN_SECRET);
     if (!decodedToken){

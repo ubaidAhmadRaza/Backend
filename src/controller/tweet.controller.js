@@ -7,17 +7,21 @@ import { asyncHandler } from "../utils/asynchandler.js";
 
 const createTweet = asyncHandler(async (req, res) => {
   const { content } = req.body;
-  const userId = req.user._id;
+  const userId = req.user?._id;
 
   if (!content) {
     throw new ApiError(400, "Content is required");
   }
 
   const newTweet = await Tweet.create({ content, owner: userId });
+  const tweet = await Tweet.findById(newTweet._id).populate(
+    "owner",
+    "username avatar email fullname"
+  );
 
   res
     .status(200)
-    .json(new ApiResponse(201, newTweet, "Tweet created successfully"));
+    .json(new ApiResponse(201, tweet, "Tweet created successfully"));
 });
 
 const getUserTweets = asyncHandler(async (req, res) => {
@@ -32,41 +36,39 @@ const getUserTweets = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
-  const tweets = await Tweet.find({ owner: userId });
+  const tweets = await Tweet.find({ owner: userId }).populate(
+    "owner",
+    "username avatar email fullname"
+  );
 
   res
     .status(200)
-    .json(
-      new ApiResponse(200, tweets, "User tweets retrieved successfully")
-    );
+    .json(new ApiResponse(200, tweets, "User tweets retrieved successfully"));
 });
 
 const updateTweet = asyncHandler(async (req, res) => {
- 
-    const { content } = req.body;
-    if (!content) {
-      throw new ApiError(400, "Content is required");
-    }
-    const tweet=await Tweet.findById(req.tweet._id)
+  const { content } = req.body;
+  if (!content) {
+    throw new ApiError(400, "Content is required");
+  }
+  const tweet = await Tweet.findById(req.tweet._id);
 
-    tweet.content = content;
-    const updatedTweet = await tweet.save();
+  tweet.content = content;
+  const updatedTweet = await tweet.save();
+  const updatedTweet2 = await Tweet.findById(req.tweet._id).populate(
+    "owner",
+    "username avatar email fullname"
+  );
 
-    res
-      .status(200)
-      .json(new ApiResponse(200, updatedTweet, "Tweet updated successfully"));
-
+  res
+    .status(200)
+    .json(new ApiResponse(200, updatedTweet2, "Tweet updated successfully"));
 });
 
 const deleteTweet = asyncHandler(async (req, res) => {
-  
-    await Tweet.findByIdAndDelete(req.tweet._id)
+  await Tweet.findByIdAndDelete(req.tweet._id);
 
-
-    res
-      .status(200)
-      .json(new ApiResponse(200, {}, "Tweet deleted successfully"));
-  
+  res.status(200).json(new ApiResponse(200, {}, "Tweet deleted successfully"));
 });
 
 export { createTweet, getUserTweets, updateTweet, deleteTweet };

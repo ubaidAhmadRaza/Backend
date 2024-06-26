@@ -8,6 +8,25 @@ const getVideoComments = asyncHandler(async (req, res) => {
   //TODO: get all comments for a video
   const { videoId } = req.params;
   const { page = 1, limit = 10 } = req.query;
+  const pageNumber = parseInt(page);
+  if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400, "invalid video id");
+  }
+  const limitNumber = parseInt(limit);
+  const skip = (pageNumber - 1) * limitNumber;
+  const comments = await Comment.find({ video: videoId }).skip(skip).populate("owner","avatar username fullname");
+  const totalComments = await Comment.countDocuments({ video: videoId });
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, {
+        comments,
+        totalComments,
+        pageNumber,
+        limitNumber,
+        totalPages: Math.ceil(totalComments / limitNumber),
+      })
+    );
 });
 
 const addComment = asyncHandler(async (req, res) => {
@@ -29,6 +48,7 @@ const addComment = asyncHandler(async (req, res) => {
     owner: user._id,
     video: videoId,
   });
+  await comment.populate("owner","avatar username")
   res
     .status(200)
     .json(new ApiResponse(200, comment, "Comment added successfuly"));
@@ -69,7 +89,7 @@ const updateComment = asyncHandler(async (req, res) => {
 const deleteComment = asyncHandler(async (req, res) => {
   // TODO: delete a comment
   const { commentId } = req.params;
-  const userId = req.user._id;
+  const userId = req.user?._id;
 
   // Check if commentId is provided
   if (!commentId) {
@@ -86,7 +106,7 @@ const deleteComment = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Comment not found");
   }
 
-  // Respond with a success message
+
   res.status(200).json(new ApiResponse(200, {}, "delete comment success"));
 });
 
